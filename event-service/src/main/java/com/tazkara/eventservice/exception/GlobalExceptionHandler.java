@@ -40,6 +40,18 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_EVENT", ex.getMessage(), request, List.of());
     }
 
+    @ExceptionHandler(EventNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(EventNotFoundException ex,
+                                                   HttpServletRequest request) {
+        return build(HttpStatus.NOT_FOUND, "EVENT_NOT_FOUND", ex.getMessage(), request, List.of());
+    }
+
+    @ExceptionHandler(EventAccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(EventAccessDeniedException ex,
+                                                       HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, "FORBIDDEN", ex.getMessage(), request, List.of());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception ex, HttpServletRequest request) {
         log.error("Unexpected error on {}", request.getRequestURI(), ex);

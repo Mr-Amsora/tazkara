@@ -40,7 +40,7 @@ public class TicketType {
         this.reservedCount = 0;
     }
 
-    void attachTo(Event event) {
+    public void attachTo(Event event) {
         this.event = event;
     }
 }

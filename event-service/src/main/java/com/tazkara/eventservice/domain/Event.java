@@ -4,6 +4,7 @@ import com.tazkara.eventservice.exception.InvalidEventException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -14,6 +15,7 @@ import java.util.Locale;
 @Entity
 @Table(name = "events")
 @Getter
+@Setter
 @NoArgsConstructor
 public class Event {
 
@@ -71,14 +73,13 @@ public class Event {
         return event;
     }
 
-
-    private static void validateStartTime(Instant startTime, Instant now) {
+    public static void validateStartTime(Instant startTime, Instant now) {
         if (startTime.isBefore(now.plus(24, ChronoUnit.HOURS))) {
             throw new InvalidEventException("Event must start at least 24 hours from now");
         }
     }
 
-    private static void validateTicketTypes(List<TicketType> ticketTypes) {
+    public static void validateTicketTypes(List<TicketType> ticketTypes) {
         if (ticketTypes.isEmpty() || ticketTypes.size() > 5) {
             throw new InvalidEventException("An event needs between 1 and 5 ticket types");
         }

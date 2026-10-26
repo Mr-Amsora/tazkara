@@ -34,6 +34,12 @@ public class GlobalExceptionHandler {
                 "Request body is missing, malformed or contains an unsupported value", request, List.of());
     }
 
+    @ExceptionHandler(InvalidEventException.class)
+    public ResponseEntity<ApiError> handleInvalidEvent(InvalidEventException ex,
+                                                       HttpServletRequest request) {
+        return build(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_EVENT", ex.getMessage(), request, List.of());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception ex, HttpServletRequest request) {
         log.error("Unexpected error on {}", request.getRequestURI(), ex);

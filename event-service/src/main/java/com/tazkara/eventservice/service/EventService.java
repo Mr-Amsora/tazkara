@@ -14,6 +14,11 @@ import com.tazkara.eventservice.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.tazkara.eventservice.repository.EventSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.Instant;
 import java.util.List;
@@ -105,6 +110,30 @@ public class EventService {
 
         Event.validateStartTime(event.getStartTime(), Instant.now());
         event.setStatus(EventStatus.PUBLISHED);
+
+        return EventMapper.toResponse(event);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EventResponse> browseEvents(String city, Instant from, Instant to,
+                                            String keyword, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), safeSize,
+                Sort.by("startTime").ascending());
+
+        return eventRepository.findAll(
+                EventSpecification.browseable(city, from, to, keyword, Instant.now()),
+                pageable
+        ).map(EventMapper::toResponse);
+    }
+
+    public EventResponse getPublicEventDetails(Long eventId) {
+        Event event = findEvent(eventId);
+
+        if (event.getStatus() != EventStatus.PUBLISHED
+                || event.getStartTime().isBefore(Instant.now())) {
+            throw new EventNotFoundException("Event not found with id: " + eventId);
+        }
 
         return EventMapper.toResponse(event);
     }

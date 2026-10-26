@@ -13,7 +13,12 @@ public class EventMapper {
     public static EventResponse toResponse(Event event) {
         List<TicketTypeResponse> ticketTypes = event.getTicketTypes().stream()
                 .map(type -> new TicketTypeResponse(
-                        type.getId(), type.getName(), type.getPrice(), type.getQuantity()))
+                        type.getId(),
+                        type.getName(),
+                        type.getPrice(),
+                        type.getQuantity(),
+                        type.getAvailableTickets(),
+                        type.isSoldOut()))
                 .toList();
 
         return new EventResponse(

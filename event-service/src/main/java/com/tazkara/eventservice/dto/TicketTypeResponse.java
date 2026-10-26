@@ -10,5 +10,9 @@ public record TicketTypeResponse(
 
         BigDecimal price,
 
-        int quantity
+        int quantity,
+
+        int availableTickets,
+
+        boolean soldOut
 ) {}

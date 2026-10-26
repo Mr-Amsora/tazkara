@@ -43,4 +43,12 @@ public class TicketType {
     public void attachTo(Event event) {
         this.event = event;
     }
+
+    public int getAvailableTickets() {
+        return Math.max(0, this.quantity - this.reservedCount);
+    }
+
+    public boolean isSoldOut() {
+        return getAvailableTickets() == 0;
+    }
 }

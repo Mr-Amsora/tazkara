@@ -138,6 +138,18 @@ public class EventService {
         return EventMapper.toResponse(event);
     }
 
+    @Transactional(readOnly = true)
+    public Page<EventResponse> getMyEvents(Long organizerId, EventStatus status, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), safeSize,
+                Sort.by("startTime").descending());
+
+        return eventRepository.findAll(
+                EventSpecification.myEvents(organizerId, status),
+                pageable
+        ).map(EventMapper::toResponse);
+    }
+
     private Event findEvent(Long eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));

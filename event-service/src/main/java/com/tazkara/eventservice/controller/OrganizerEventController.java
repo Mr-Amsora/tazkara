@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import com.tazkara.eventservice.domain.EventStatus;
+import org.springframework.data.domain.Page;
 
 @RestController
 @RequestMapping("/api/organizer/events")
@@ -38,5 +40,15 @@ public class OrganizerEventController {
                                                       @PathVariable Long id) {
         EventResponse response = eventService.publishEvent(organizerId, id);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<EventResponse>> getMyEvents(
+            @AuthenticationPrincipal Long organizerId,
+            @RequestParam(required = false) EventStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(eventService.getMyEvents(organizerId, status, page, size));
     }
 }

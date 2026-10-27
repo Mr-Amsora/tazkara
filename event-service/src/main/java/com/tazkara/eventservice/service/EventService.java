@@ -4,6 +4,7 @@ import com.tazkara.eventservice.domain.Event;
 import com.tazkara.eventservice.domain.EventStatus;
 import com.tazkara.eventservice.domain.TicketType;
 import com.tazkara.eventservice.dto.CreateEventRequest;
+import com.tazkara.eventservice.dto.EventInfoResponse;
 import com.tazkara.eventservice.dto.EventResponse;
 import com.tazkara.eventservice.dto.UpdateEventRequest;
 import com.tazkara.eventservice.exception.EventAccessDeniedException;
@@ -153,5 +154,16 @@ public class EventService {
     private Event findEvent(Long eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+    }
+
+    public EventInfoResponse getEventInfo(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow( () -> new EventNotFoundException("Event not found with id: " + eventId));
+        return new EventInfoResponse(
+                event.getId(),
+                event.getOrganizerId(),
+                event.getTitle(),
+                event.getStatus(),
+                event.getStartTime());
     }
 }

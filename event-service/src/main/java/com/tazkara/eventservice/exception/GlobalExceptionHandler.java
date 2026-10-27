@@ -52,6 +52,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, "FORBIDDEN", ex.getMessage(), request, List.of());
     }
 
+    @ExceptionHandler(TicketsUnavailableException.class)
+    public ResponseEntity<ApiError> handleTicketsUnavailable(TicketsUnavailableException ex,
+                                                             HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "TICKETS_UNAVAILABLE", ex.getMessage(), request, List.of());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception ex, HttpServletRequest request) {
         log.error("Unexpected error on {}", request.getRequestURI(), ex);

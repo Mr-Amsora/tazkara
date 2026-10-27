@@ -1,5 +1,6 @@
 package com.tazkara.eventservice.domain;
 
+import com.tazkara.eventservice.exception.TicketsUnavailableException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -50,5 +51,16 @@ public class TicketType {
 
     public boolean isSoldOut() {
         return getAvailableTickets() == 0;
+    }
+
+    public void reserve(int amount) {
+        if (amount > getAvailableTickets()) {
+            throw new TicketsUnavailableException(name);
+        }
+        reservedCount += amount;
+    }
+
+    public void release(int amount) {
+        reservedCount = Math.max(0, reservedCount - amount);
     }
 }

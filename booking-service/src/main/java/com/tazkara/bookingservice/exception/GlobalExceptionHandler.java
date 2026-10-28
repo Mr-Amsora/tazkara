@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -37,6 +38,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BookingException.class)
     public ResponseEntity<ApiError> handleBooking(BookingException ex, HttpServletRequest request) {
         return build(ex.getStatus(), ex.getCode(), ex.getMessage(), request, List.of());
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiError> handleConcurrentUpdate(ObjectOptimisticLockingFailureException ex,
+                                                           HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "CONCURRENT_UPDATE",
+                "The booking was changed by another request, check its status and try again",
+                request, List.of());
     }
 
     @ExceptionHandler(Exception.class)

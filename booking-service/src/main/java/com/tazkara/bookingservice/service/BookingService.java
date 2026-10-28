@@ -8,6 +8,7 @@ import com.tazkara.bookingservice.domain.BookingReference;
 import com.tazkara.bookingservice.domain.BookingStatus;
 import com.tazkara.bookingservice.dto.BookingLineRequest;
 import com.tazkara.bookingservice.dto.BookingResponse;
+import com.tazkara.bookingservice.dto.PayBookingRequest;
 import com.tazkara.bookingservice.dto.PlaceBookingRequest;
 import com.tazkara.bookingservice.exception.BookingException;
 import com.tazkara.bookingservice.mapper.BookingMapper;
@@ -33,10 +34,7 @@ public class BookingService {
         Instant now = Instant.now();
 
         EventClient.EventInfo event = eventClient.getEvent(request.eventId());
-        if (!"PUBLISHED".equals(event.status()) || !event.startTime().isAfter(now)) {
-            throw new BookingException(HttpStatus.UNPROCESSABLE_ENTITY, "EVENT_NOT_BOOKABLE",
-                    "This event is not open for booking");
-        }
+        requireOpenEvent(event, now);
 
         checkNoDuplicateTicketTypes(request);
         checkTicketLimit(user.id(), event.id(), request);
@@ -68,6 +66,26 @@ public class BookingService {
         } catch (RuntimeException e) {
             eventClient.release(event.id(), requestedLines);
             throw e;
+        }
+    }
+
+    public BookingResponse payBooking(AuthenticatedUser user, String reference, PayBookingRequest request) {
+        Booking booking = bookingRepository.findByReferenceAndAttendeeId(reference, user.id())
+                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "BOOKING_NOT_FOUND",
+                        "Booking not found"));
+
+        Instant now = Instant.now();
+        booking.ensurePayable(now);
+        requireOpenEvent(eventClient.getEvent(booking.getEventId()), now);
+
+        booking.confirm(request.paymentMethod(), now);
+        return BookingMapper.toResponse(bookingRepository.save(booking));
+    }
+
+    private void requireOpenEvent(EventClient.EventInfo event, Instant now) {
+        if (!"PUBLISHED".equals(event.status()) || !event.startTime().isAfter(now)) {
+            throw new BookingException(HttpStatus.UNPROCESSABLE_ENTITY, "EVENT_NOT_BOOKABLE",
+                    "This event is not open for booking");
         }
     }
 

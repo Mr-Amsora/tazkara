@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
@@ -20,4 +21,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countActiveTickets(@Param("attendeeId") Long attendeeId,
                             @Param("eventId") Long eventId,
                             @Param("statuses") Collection<BookingStatus> statuses);
+
+    Optional<Booking> findByReferenceAndAttendeeId(String reference, Long attendeeId);
 }

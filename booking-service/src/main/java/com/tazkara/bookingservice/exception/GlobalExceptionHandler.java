@@ -10,6 +10,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
 import java.util.List;
@@ -33,6 +34,13 @@ public class GlobalExceptionHandler {
                                                      HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST",
                 "Request body is missing, malformed or contains an unsupported value", request, List.of());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleBadParameter(MethodArgumentTypeMismatchException ex,
+                                                       HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER",
+                "Invalid value for parameter '" + ex.getName() + "'", request, List.of());
     }
 
     @ExceptionHandler(BookingException.class)

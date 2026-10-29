@@ -156,14 +156,21 @@ public class EventService {
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
     }
 
+    @Transactional(readOnly = true)
     public EventInfoResponse getEventInfo(Long eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow( () -> new EventNotFoundException("Event not found with id: " + eventId));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+
+        List<EventInfoResponse.TicketTypeInfo> ticketTypes = event.getTicketTypes().stream()
+                .map(type -> new EventInfoResponse.TicketTypeInfo(
+                        type.getId(), type.getName(), type.getPrice(), type.getQuantity()))
+                .toList();
+
         return new EventInfoResponse(
                 event.getId(),
                 event.getOrganizerId(),
                 event.getTitle(),
                 event.getStatus(),
-                event.getStartTime());
+                event.getStartTime(),
+                ticketTypes);
     }
 }

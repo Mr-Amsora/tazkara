@@ -1,5 +1,6 @@
 package com.tazkara.bookingservice.domain;
 
+import com.tazkara.bookingservice.domain.refund.RefundPolicy;
 import com.tazkara.bookingservice.exception.BookingException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -129,6 +130,23 @@ public class Booking {
                     "Only bookings waiting for payment can expire");
         }
         this.status = BookingStatus.EXPIRED;
+    }
+
+    public void cancelByAttendee(RefundPolicy policy) {
+        if (!status.canMoveTo(BookingStatus.CANCELLED)) {
+            throw new BookingException(HttpStatus.CONFLICT, "BOOKING_NOT_CANCELLABLE",
+                    "Expired or cancelled bookings cannot be cancelled");
+        }
+        if (status == BookingStatus.CONFIRMED) {
+            if (!policy.allowsCancellation()) {
+                throw new BookingException(HttpStatus.UNPROCESSABLE_ENTITY, "CANCELLATION_NOT_ALLOWED",
+                        "Confirmed bookings cannot be cancelled less than 48 hours before the event");
+            }
+            this.refundAmount = policy.refundFor(totalAmount);
+        }
+        this.status = BookingStatus.CANCELLED;
+        this.cancellationReason = CancellationReason.BY_ATTENDEE;
+        this.holdExpiresAt = null;
     }
 
     public void markTicketsReleased() {

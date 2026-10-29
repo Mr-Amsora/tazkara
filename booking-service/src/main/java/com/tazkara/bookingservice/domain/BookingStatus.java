@@ -10,6 +10,8 @@ public enum BookingStatus {
 
     public static final List<BookingStatus> ACTIVE = List.of(PENDING_PAYMENT, CONFIRMED);
 
+    public static final List<BookingStatus> RELEASING = List.of(EXPIRED, CANCELLED);
+
     public boolean canMoveTo(BookingStatus next) {
         if (this == PENDING_PAYMENT) {
             if (next == CONFIRMED || next == EXPIRED || next == CANCELLED) {

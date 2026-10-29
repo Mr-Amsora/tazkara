@@ -61,15 +61,17 @@ public class EventClient {
                 .body(new ParameterizedTypeReference<List<ReservedLine>>() {}));
     }
 
-    public void release(Long eventId, List<Line> lines) {
+    public boolean release(Long eventId, List<Line> lines) {
         try {
             restClient.post()
                     .uri("/api/internal/events/{id}/release", eventId)
                     .body(new LinesRequest(lines))
                     .retrieve()
                     .toBodilessEntity();
+            return true;
         } catch (RestClientException e) {
             log.error("Could not release tickets of event {}: {}", eventId, e.getMessage());
+            return false;
         }
     }
 

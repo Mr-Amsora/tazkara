@@ -16,7 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "bookings")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Booking {
 
     @Id
@@ -66,10 +66,12 @@ public class Booking {
     @Column(precision = 12, scale = 2)
     private BigDecimal refundAmount;
 
+    private boolean ticketsReleased;
+
     @Column(nullable = false)
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<BookingLine> lines = new ArrayList<>();
 
     @Builder
@@ -119,5 +121,17 @@ public class Booking {
         this.paymentMethod = method;
         this.paidAt = now;
         this.holdExpiresAt = null;
+    }
+
+    public void expire() {
+        if (!status.canMoveTo(BookingStatus.EXPIRED)) {
+            throw new BookingException(HttpStatus.CONFLICT, "BOOKING_NOT_EXPIRABLE",
+                    "Only bookings waiting for payment can expire");
+        }
+        this.status = BookingStatus.EXPIRED;
+    }
+
+    public void markTicketsReleased() {
+        this.ticketsReleased = true;
     }
 }

@@ -2,11 +2,14 @@ package com.tazkara.bookingservice.repository;
 
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
@@ -23,4 +26,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                             @Param("statuses") Collection<BookingStatus> statuses);
 
     Optional<Booking> findByReferenceAndAttendeeId(String reference, Long attendeeId);
+
+    List<Booking> findByStatusAndHoldExpiresAtBefore(BookingStatus status, Instant time, Pageable pageable);
+
+    List<Booking> findByStatusInAndTicketsReleasedFalse(Collection<BookingStatus> statuses, Pageable pageable);
 }

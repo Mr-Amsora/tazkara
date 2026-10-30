@@ -85,8 +85,8 @@ public class EventClient {
         }
     }
 
-    public record EventInfo(Long id, Long organizerId, String title, String status,
-                            Instant startTime, List<TicketTypeInfo> ticketTypes) {}
+    public record EventInfo(Long id, Long organizerId, String title, String venue, String city,
+                            String status, Instant startTime, List<TicketTypeInfo> ticketTypes) {}
 
     public record TicketTypeInfo(Long id, String name, BigDecimal price, int quantity) {}
 

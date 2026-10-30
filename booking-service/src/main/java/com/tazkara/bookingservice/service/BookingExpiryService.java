@@ -3,9 +3,11 @@ package com.tazkara.bookingservice.service;
 import com.tazkara.bookingservice.client.EventClient;
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingStatus;
+import com.tazkara.bookingservice.domain.events.BookingStatusChangedEvent;
 import com.tazkara.bookingservice.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class BookingExpiryService {
 
     private final BookingRepository bookingRepository;
     private final EventClient eventClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     public int expireOverdueBookings() {
         List<Booking> overdue = bookingRepository.findByStatusAndHoldExpiresAtBefore(
@@ -31,7 +34,8 @@ public class BookingExpiryService {
         for (Booking booking : overdue) {
             try {
                 booking.expire();
-                bookingRepository.save(booking);
+                Booking saved = bookingRepository.save(booking);
+                eventPublisher.publishEvent(BookingStatusChangedEvent.from(saved));
                 expired++;
             } catch (ObjectOptimisticLockingFailureException e) {
                 log.info("Booking {} was changed at the same moment, skipping expiry", booking.getReference());

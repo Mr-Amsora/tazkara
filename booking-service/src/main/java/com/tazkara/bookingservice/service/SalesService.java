@@ -3,11 +3,13 @@ package com.tazkara.bookingservice.service;
 import com.tazkara.bookingservice.client.EventClient;
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingStatus;
+import com.tazkara.bookingservice.dto.FileDownload;
 import com.tazkara.bookingservice.dto.OrganizerBookingResponse;
 import com.tazkara.bookingservice.dto.PageResponse;
 import com.tazkara.bookingservice.dto.SalesSummaryResponse;
 import com.tazkara.bookingservice.dto.TicketTypeSalesResponse;
 import com.tazkara.bookingservice.exception.BookingException;
+import com.tazkara.bookingservice.export.BookingCsvExporter;
 import com.tazkara.bookingservice.mapper.BookingMapper;
 import com.tazkara.bookingservice.repository.BookingRepository;
 import com.tazkara.bookingservice.repository.SalesRow;
@@ -21,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -58,6 +62,16 @@ public class SalesService {
                 .toList();
 
         return new SalesSummaryResponse(event.id(), event.title(), ticketTypes);
+    }
+
+    public FileDownload exportConfirmedBookings(AuthenticatedUser organizer, Long eventId) {
+        requireOwnedEvent(organizer, eventId);
+
+        List<Booking> confirmed = bookingRepository
+                .findByEventIdAndStatusOrderByPaidAtAsc(eventId, BookingStatus.CONFIRMED);
+
+        String fileName = "bookings-event-" + eventId + "-" + LocalDate.now(ZoneOffset.UTC) + ".csv";
+        return new FileDownload(fileName, BookingCsvExporter.export(confirmed));
     }
 
     private TicketTypeSalesResponse toSales(EventClient.TicketTypeInfo type, List<SalesRow> rows) {

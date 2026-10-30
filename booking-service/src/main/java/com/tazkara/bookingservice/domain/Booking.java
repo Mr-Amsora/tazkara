@@ -39,6 +39,12 @@ public class Booking {
     @Column(nullable = false, length = 200)
     private String eventTitle;
 
+    @Column(length = 200)
+    private String eventVenue;
+
+    @Column(length = 100)
+    private String eventCity;
+
     @Column(nullable = false)
     private Instant eventStartTime;
 
@@ -77,12 +83,14 @@ public class Booking {
 
     @Builder
     private Booking(Long attendeeId, String attendeeEmail, Long eventId, String eventTitle,
-                    Instant eventStartTime, String reference, List<BookingLine> lines,
-                    Instant holdExpiresAt, Instant now) {
+                    String eventVenue, String eventCity, Instant eventStartTime, String reference,
+                    List<BookingLine> lines, Instant holdExpiresAt, Instant now) {
         this.attendeeId = attendeeId;
         this.attendeeEmail = attendeeEmail;
         this.eventId = eventId;
         this.eventTitle = eventTitle;
+        this.eventVenue = eventVenue;
+        this.eventCity = eventCity;
         this.eventStartTime = eventStartTime;
         this.reference = reference;
         this.createdAt = now;

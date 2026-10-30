@@ -6,19 +6,23 @@ import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingLine;
 import com.tazkara.bookingservice.domain.BookingReference;
 import com.tazkara.bookingservice.domain.BookingStatus;
+import com.tazkara.bookingservice.domain.events.BookingStatusChangedEvent;
 import com.tazkara.bookingservice.domain.refund.RefundPolicy;
 import com.tazkara.bookingservice.domain.refund.RefundPolicyFactory;
 import com.tazkara.bookingservice.dto.BookingLineRequest;
 import com.tazkara.bookingservice.dto.BookingResponse;
 import com.tazkara.bookingservice.dto.BookingSummaryResponse;
+import com.tazkara.bookingservice.dto.FileDownload;
 import com.tazkara.bookingservice.dto.PageResponse;
 import com.tazkara.bookingservice.dto.PayBookingRequest;
 import com.tazkara.bookingservice.dto.PlaceBookingRequest;
 import com.tazkara.bookingservice.exception.BookingException;
+import com.tazkara.bookingservice.export.TicketPdfGenerator;
 import com.tazkara.bookingservice.mapper.BookingMapper;
 import com.tazkara.bookingservice.repository.BookingRepository;
 import com.tazkara.bookingservice.security.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +45,7 @@ public class BookingService {
     private final EventClient eventClient;
     private final BookingProperties properties;
     private final RefundPolicyFactory refundPolicyFactory;
+    private final ApplicationEventPublisher eventPublisher;
 
     public BookingResponse placeBooking(AuthenticatedUser user, PlaceBookingRequest request) {
         Instant now = Instant.now();
@@ -66,6 +71,8 @@ public class BookingService {
                 .attendeeEmail(user.email())
                 .eventId(event.id())
                 .eventTitle(event.title())
+                .eventVenue(event.venue())
+                .eventCity(event.city())
                 .eventStartTime(event.startTime())
                 .reference(BookingReference.generate())
                 .lines(lines)
@@ -73,12 +80,18 @@ public class BookingService {
                 .now(now)
                 .build();
 
+        Booking saved;
         try {
-            return BookingMapper.toResponse(bookingRepository.save(booking));
+            saved = bookingRepository.save(booking);
         } catch (RuntimeException e) {
             eventClient.release(event.id(), requestedLines);
             throw e;
         }
+
+        if (saved.getStatus() == BookingStatus.CONFIRMED) {
+            publishStatusChange(saved);
+        }
+        return BookingMapper.toResponse(saved);
     }
 
     public BookingResponse payBooking(AuthenticatedUser user, String reference, PayBookingRequest request) {
@@ -89,7 +102,10 @@ public class BookingService {
         requireOpenEvent(eventClient.getEvent(booking.getEventId()), now);
 
         booking.confirm(request.paymentMethod(), now);
-        return BookingMapper.toResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+
+        publishStatusChange(saved);
+        return BookingMapper.toResponse(saved);
     }
 
     public BookingResponse cancelBooking(AuthenticatedUser user, String reference) {
@@ -99,7 +115,10 @@ public class BookingService {
         RefundPolicy policy = refundPolicyFactory.forTimeLeft(timeLeft);
 
         booking.cancelByAttendee(policy);
-        return BookingMapper.toResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+
+        publishStatusChange(saved);
+        return BookingMapper.toResponse(saved);
     }
 
     public BookingResponse getBooking(AuthenticatedUser user, String reference) {
@@ -116,6 +135,21 @@ public class BookingService {
                 : bookingRepository.findByAttendeeIdAndStatus(user.id(), status, sorted);
 
         return PageResponse.from(page.map(BookingMapper::toSummary));
+    }
+
+    public FileDownload downloadTickets(AuthenticatedUser user, String reference) {
+        Booking booking = findOwned(user, reference);
+
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new BookingException(HttpStatus.CONFLICT, "TICKETS_NOT_AVAILABLE",
+                    "Tickets are only available for confirmed bookings");
+        }
+        return new FileDownload("tickets-" + booking.getReference() + ".pdf",
+                TicketPdfGenerator.generate(booking));
+    }
+
+    private void publishStatusChange(Booking booking) {
+        eventPublisher.publishEvent(BookingStatusChangedEvent.from(booking));
     }
 
     private Booking findOwned(AuthenticatedUser user, String reference) {

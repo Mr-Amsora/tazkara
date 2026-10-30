@@ -10,6 +10,8 @@ public record EventInfoResponse(
         Long id,
         Long organizerId,
         String title,
+        String venue,
+        String city,
         EventStatus status,
         Instant startTime,
         List<TicketTypeInfo> ticketTypes

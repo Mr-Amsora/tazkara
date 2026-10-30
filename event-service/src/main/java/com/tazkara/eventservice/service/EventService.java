@@ -169,6 +169,8 @@ public class EventService {
                 event.getId(),
                 event.getOrganizerId(),
                 event.getTitle(),
+                event.getVenue(),
+                event.getCity(),
                 event.getStatus(),
                 event.getStartTime(),
                 ticketTypes);

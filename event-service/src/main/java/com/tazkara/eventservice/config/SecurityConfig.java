@@ -34,9 +34,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(errorHandler)
                         .accessDeniedHandler(errorHandler))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtSecret), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new InternalKeyFilter(internalKey), UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable);
+                .addFilterBefore(new InternalKeyFilter(internalKey), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

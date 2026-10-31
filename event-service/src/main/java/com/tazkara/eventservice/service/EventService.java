@@ -1,7 +1,7 @@
 package com.tazkara.eventservice.service;
 
 import com.tazkara.eventservice.domain.Event;
-import com.tazkara.eventservice.domain.EventCancelledEvent;
+import com.tazkara.eventservice.dto.EventCancelledEvent;
 import com.tazkara.eventservice.domain.EventStatus;
 import com.tazkara.eventservice.domain.TicketType;
 import com.tazkara.eventservice.dto.CreateEventRequest;

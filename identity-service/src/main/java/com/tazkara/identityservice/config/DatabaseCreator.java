@@ -22,10 +22,6 @@ public class DatabaseCreator implements ApplicationListener<ApplicationEnvironme
         String serverUrl = url.substring(0, lastSlash + 1);
         String databaseName = url.substring(lastSlash + 1);
 
-        if (!databaseName.matches("[A-Za-z0-9_]+")) {
-            throw new IllegalStateException("Unsafe database name: " + databaseName);
-        }
-
         try (Connection connection = DriverManager.getConnection(serverUrl + "postgres", user, password);
              Statement statement = connection.createStatement()) {
 

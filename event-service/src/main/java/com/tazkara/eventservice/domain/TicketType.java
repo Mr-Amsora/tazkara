@@ -5,12 +5,14 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "ticket_types")
 @Getter
+@Setter
 @NoArgsConstructor
 public class TicketType {
 
@@ -46,7 +48,7 @@ public class TicketType {
     }
 
     public int getAvailableTickets() {
-        return Math.max(0, this.quantity - this.reservedCount);
+        return this.quantity - this.reservedCount;
     }
 
     public boolean isSoldOut() {
@@ -61,6 +63,6 @@ public class TicketType {
     }
 
     public void release(int amount) {
-        reservedCount = Math.max(0, reservedCount - amount);
+        reservedCount = reservedCount - amount;
     }
 }

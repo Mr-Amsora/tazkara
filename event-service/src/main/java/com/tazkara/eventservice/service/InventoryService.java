@@ -63,7 +63,7 @@ public class InventoryService {
                 .distinct()
                 .toList();
 
-        Map<Long, TicketType> ticketTypes = ticketTypeRepository.findForUpdate(eventId, ids).stream()
+        Map<Long, TicketType> ticketTypes = ticketTypeRepository.findByEventIdAndIdInOrderById(eventId, ids).stream()
                 .collect(Collectors.toMap(TicketType::getId, Function.identity()));
 
         if (ticketTypes.size() != ids.size()) {

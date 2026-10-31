@@ -25,21 +25,21 @@ public class InternalEventController {
     private final EventService eventService;
     private final InventoryService inventoryService;
 
-    @GetMapping("/{eventId}")
-    public ResponseEntity<EventInfoResponse> getEventInfo(@PathVariable Long eventId) {
-        return ResponseEntity.ok(eventService.getEventInfo(eventId));
+    @GetMapping("/{id}")
+    public ResponseEntity<EventInfoResponse> getEventInfo(@PathVariable Long id) {
+        return ResponseEntity.ok(eventService.getEventInfo(id));
     }
 
-    @PostMapping("/{eventId}/reserve")
-    public ResponseEntity<List<ReservedLineResponse>> reserve(@PathVariable Long eventId,
+    @PostMapping("/{id}/reserve")
+    public ResponseEntity<List<ReservedLineResponse>> reserve(@PathVariable Long id,
                                                               @Valid @RequestBody ReserveRequest request) {
-        return ResponseEntity.ok(inventoryService.reserve(eventId, request));
+        return ResponseEntity.ok(inventoryService.reserve(id, request));
     }
 
-    @PostMapping("/{eventId}/release")
-    public ResponseEntity<Void> release(@PathVariable Long eventId,
+    @PostMapping("/{id}/release")
+    public ResponseEntity<Void> release(@PathVariable Long id,
                                         @Valid @RequestBody ReserveRequest request) {
-        inventoryService.release(eventId, request);
+        inventoryService.release(id, request);
         return ResponseEntity.noContent().build();
     }
 }

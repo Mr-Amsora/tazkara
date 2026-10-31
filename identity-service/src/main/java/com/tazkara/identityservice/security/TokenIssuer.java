@@ -1,7 +1,7 @@
 package com.tazkara.identityservice.security;
 
 import com.tazkara.identityservice.domain.User;
-import com.tazkara.identityservice.dto.TokenResponse;
+import com.tazkara.identityservice.dto.AccessToken;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +29,7 @@ public class TokenIssuer {
         this.expirationMinutes = expirationMinutes;
     }
 
-    public TokenResponse issue(User user) {
+    public AccessToken issue(User user) {
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(expirationMinutes, ChronoUnit.MINUTES);
 
@@ -42,6 +42,6 @@ public class TokenIssuer {
                 .signWith(key)
                 .compact();
 
-        return new TokenResponse(token, expiresAt);
+        return new AccessToken(token, expiresAt);
     }
 }

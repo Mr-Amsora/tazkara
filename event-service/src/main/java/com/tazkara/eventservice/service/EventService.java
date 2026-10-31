@@ -165,7 +165,7 @@ public class EventService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
 
         if (!event.getOrganizerId().equals(organizerId)) {
-            throw new EventAccessDeniedException("You are not the owner of this event");
+            throw new EventAccessDeniedException("You do not have permission to edit this event");
         }
 
         event.cancel();

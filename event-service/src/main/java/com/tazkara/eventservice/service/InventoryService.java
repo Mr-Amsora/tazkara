@@ -15,10 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -29,27 +31,38 @@ public class InventoryService {
 
     @Transactional
     public List<ReservedLineResponse> reserve(Long eventId, ReserveRequest request) {
+
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventNotFoundException("Event not found"));
-        boolean open = event.getStatus() == EventStatus.PUBLISHED && event.getStartTime().isAfter(Instant.now());
-        if (!open) {
+
+        if (event.getStatus() != EventStatus.PUBLISHED
+                || !event.getStartTime().isAfter(Instant.now())) {
             throw new InvalidEventException("Event is not open for booking");
         }
 
         Map<Long, TicketType> ticketTypes = lockTicketTypes(eventId, request);
+
         List<ReservedLineResponse> reserved = new ArrayList<>();
 
         for (ReserveRequest.Line line : request.lines()) {
             TicketType ticketType = ticketTypes.get(line.ticketTypeId());
+
             ticketType.reserve(line.quantity());
+
             reserved.add(new ReservedLineResponse(
-                    ticketType.getId(), ticketType.getName(), ticketType.getPrice(), line.quantity()));
+                    ticketType.getId(),
+                    ticketType.getName(),
+                    ticketType.getPrice(),
+                    line.quantity()
+            ));
         }
+
         return reserved;
     }
 
     @Transactional
     public void release(Long eventId, ReserveRequest request) {
+
         Map<Long, TicketType> ticketTypes = lockTicketTypes(eventId, request);
 
         for (ReserveRequest.Line line : request.lines()) {
@@ -58,17 +71,25 @@ public class InventoryService {
     }
 
     private Map<Long, TicketType> lockTicketTypes(Long eventId, ReserveRequest request) {
+
         List<Long> ids = request.lines().stream()
                 .map(ReserveRequest.Line::ticketTypeId)
                 .distinct()
                 .toList();
 
-        Map<Long, TicketType> ticketTypes = ticketTypeRepository.findByEventIdAndIdInOrderById(eventId, ids).stream()
-                .collect(Collectors.toMap(TicketType::getId, Function.identity()));
+        List<TicketType> types =
+                ticketTypeRepository.findByEventIdAndIdInOrderById(eventId, ids);
+
+        Map<Long, TicketType> ticketTypes = new HashMap<>();
+
+        for (TicketType type : types) {
+            ticketTypes.put(type.getId(), type);
+        }
 
         if (ticketTypes.size() != ids.size()) {
             throw new InvalidEventException("A ticket type does not belong to this event");
         }
+
         return ticketTypes;
     }
 }

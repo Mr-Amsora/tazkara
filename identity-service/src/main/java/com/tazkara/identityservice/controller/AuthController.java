@@ -1,6 +1,7 @@
 package com.tazkara.identityservice.controller;
 
 import com.tazkara.identityservice.dto.LoginRequest;
+import com.tazkara.identityservice.dto.RefreshTokenRequest;
 import com.tazkara.identityservice.dto.RegisterRequest;
 import com.tazkara.identityservice.dto.TokenResponse;
 import com.tazkara.identityservice.dto.UserResponse;
@@ -29,7 +30,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
-        TokenResponse response = authService.login(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request);
+        return ResponseEntity.noContent().build();
     }
 }

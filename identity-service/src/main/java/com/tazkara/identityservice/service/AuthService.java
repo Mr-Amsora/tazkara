@@ -1,12 +1,10 @@
 package com.tazkara.identityservice.service;
 
 import com.tazkara.identityservice.domain.User;
-import com.tazkara.identityservice.dto.LoginRequest;
-import com.tazkara.identityservice.dto.RegisterRequest;
-import com.tazkara.identityservice.dto.TokenResponse;
-import com.tazkara.identityservice.dto.UserResponse;
+import com.tazkara.identityservice.dto.*;
 import com.tazkara.identityservice.exception.EmailAlreadyExistsException;
 import com.tazkara.identityservice.exception.InvalidCredentialsException;
+import com.tazkara.identityservice.exception.InvalidRefreshTokenException;
 import com.tazkara.identityservice.mapper.UserMapper;
 import com.tazkara.identityservice.repository.UserRepository;
 import com.tazkara.identityservice.security.TokenIssuer;
@@ -14,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
@@ -25,8 +22,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenIssuer tokenIssuer;
+    private final RefreshTokenService refreshTokenService;
 
-    @Transactional
     public UserResponse register(RegisterRequest request) {
         String email = request.email().trim().toLowerCase(Locale.ROOT);
 
@@ -55,6 +52,22 @@ public class AuthService {
                 .filter(found -> passwordEncoder.matches(request.password(), found.getPassword()))
                 .orElseThrow(InvalidCredentialsException::new);
 
-        return tokenIssuer.issue(user);
+        return tokensFor(user);
+    }
+
+    public TokenResponse refresh(RefreshTokenRequest request) {
+        Long userId = refreshTokenService.consume(request.refreshToken());
+        User user = userRepository.findById(userId).orElseThrow(InvalidRefreshTokenException::new);
+        return tokensFor(user);
+    }
+
+    public void logout(RefreshTokenRequest request) {
+        refreshTokenService.revoke(request.refreshToken());
+    }
+
+    private TokenResponse tokensFor(User user) {
+        AccessToken access = tokenIssuer.issue(user);
+        RefreshTokenDto refresh = refreshTokenService.issue(user.getId());
+        return new TokenResponse(access.token(), access.expiresAt(), refresh.token(), refresh.expiresAt());
     }
 }

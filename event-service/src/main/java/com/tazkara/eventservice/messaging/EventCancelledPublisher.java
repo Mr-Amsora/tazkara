@@ -2,7 +2,6 @@ package com.tazkara.eventservice.messaging;
 
 import com.tazkara.eventservice.config.RabbitConfig;
 import com.tazkara.eventservice.dto.EventCancelledEvent;
-import com.tazkara.eventservice.dto.EventCancelledMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpException;
@@ -24,7 +23,7 @@ public class EventCancelledPublisher {
             rabbitTemplate.convertAndSend(
                     RabbitConfig.EXCHANGE,
                     RabbitConfig.EVENT_CANCELLED_KEY,
-                    new EventCancelledMessage(event.eventId()));
+                    event);
             log.info("Published event cancelled message for event {}", event.eventId());
         } catch (AmqpException e) {
             log.error("Could not publish event cancelled message for event {}: {}",

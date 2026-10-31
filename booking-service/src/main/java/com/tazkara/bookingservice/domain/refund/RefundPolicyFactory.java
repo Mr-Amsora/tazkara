@@ -23,4 +23,8 @@ public class RefundPolicyFactory {
         }
         return noRefund;
     }
+
+    public RefundPolicy forEventCancellation() {
+        return fullRefund;
+    }
 }

@@ -38,13 +38,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByEventIdAndStatusOrderByPaidAtAsc(Long eventId, BookingStatus status);
 
+    List<Booking> findByEventIdAndStatusIn(Long eventId, Collection<BookingStatus> statuses);
+
     List<Booking> findByStatusAndHoldExpiresAtBefore(BookingStatus status, Instant time, Pageable pageable);
 
     List<Booking> findByStatusInAndTicketsReleasedFalse(Collection<BookingStatus> statuses, Pageable pageable);
 
     @Query("""
             SELECT new com.tazkara.bookingservice.repository.SalesRow(
-                   l.ticketTypeId, b.status, SUM(l.quantity), SUM(l.unitPrice * l.quantity ))
+                   l.ticketTypeId, b.status, SUM(l.quantity), SUM(l.unitPrice * l.quantity))
             FROM Booking b JOIN b.lines l
             WHERE b.eventId = :eventId AND b.status IN :statuses
             GROUP BY l.ticketTypeId, b.status

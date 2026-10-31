@@ -73,6 +73,13 @@ public class Event {
         return event;
     }
 
+    public void cancel() {
+        if (status != EventStatus.PUBLISHED) {
+            throw new InvalidEventException("Only published events can be cancelled");
+        }
+        this.status = EventStatus.CANCELLED;
+    }
+
     public static void validateStartTime(Instant startTime, Instant now) {
         if (startTime.isBefore(now.plus(24, ChronoUnit.HOURS))) {
             throw new InvalidEventException("Event must start at least 24 hours from now");

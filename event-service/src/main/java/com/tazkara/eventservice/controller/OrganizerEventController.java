@@ -51,4 +51,10 @@ public class OrganizerEventController {
 
         return ResponseEntity.ok(eventService.getMyEvents(organizerId, status, page, size));
     }
+
+    @PostMapping("/{eventId}/cancel")
+    public ResponseEntity<EventResponse> cancelEvent(@AuthenticationPrincipal Long organizerId,
+                                                     @PathVariable Long eventId) {
+        return ResponseEntity.ok(eventService.cancelEvent(organizerId, eventId));
+    }
 }

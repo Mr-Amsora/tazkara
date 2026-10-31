@@ -157,6 +157,20 @@ public class Booking {
         this.holdExpiresAt = null;
     }
 
+    public void cancelByEvent(RefundPolicy policy) {
+        if (!status.canMoveTo(BookingStatus.CANCELLED)) {
+            throw new BookingException(HttpStatus.CONFLICT, "BOOKING_NOT_CANCELLABLE",
+                    "Expired or cancelled bookings cannot be cancelled");
+        }
+        if (status == BookingStatus.CONFIRMED) {
+            this.refundAmount = policy.refundFor(totalAmount);
+        }
+        this.status = BookingStatus.CANCELLED;
+        this.cancellationReason = CancellationReason.EVENT_CANCELLED;
+        this.holdExpiresAt = null;
+        this.ticketsReleased = true;
+    }
+
     public void markTicketsReleased() {
         this.ticketsReleased = true;
     }

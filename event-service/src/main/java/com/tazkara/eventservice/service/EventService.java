@@ -1,6 +1,7 @@
 package com.tazkara.eventservice.service;
 
 import com.tazkara.eventservice.domain.Event;
+import com.tazkara.eventservice.domain.EventCancelledEvent;
 import com.tazkara.eventservice.domain.EventStatus;
 import com.tazkara.eventservice.domain.TicketType;
 import com.tazkara.eventservice.dto.CreateEventRequest;
@@ -13,6 +14,7 @@ import com.tazkara.eventservice.exception.InvalidEventException;
 import com.tazkara.eventservice.mapper.EventMapper;
 import com.tazkara.eventservice.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.tazkara.eventservice.repository.EventSpecification;
@@ -29,6 +31,7 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public EventResponse createEvent(Long organizerId, CreateEventRequest request) {
         List<TicketType> ticketTypes = request.ticketTypes().stream()
@@ -151,9 +154,23 @@ public class EventService {
         ).map(EventMapper::toResponse);
     }
 
+
     private Event findEvent(Long eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+    }
+
+    @Transactional
+    public EventResponse cancelEvent(Long organizerId, Long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+
+        if (!event.getOrganizerId().equals(organizerId)) {
+            throw new EventAccessDeniedException("You are not the owner of this event");
+        }
+
+        event.cancel();
+        eventPublisher.publishEvent(new EventCancelledEvent(event.getId()));
+        return EventMapper.toResponse(event);
     }
 
     @Transactional(readOnly = true)

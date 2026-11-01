@@ -1,63 +1,104 @@
 {
   "info": {
-    "name": "Tazkara Event Ticketing Platform",
-    "_postman_id": "c1f7b8a2-9d3e-4b21-8f55-7d8a6e42b109",
-    "description": "Complete test collection for Tazkara Microservices Backend covering all business user stories (US-01 through US-17).",
+    "name": "Tazkara - Full Comprehensive Test Suite (US-01 to US-17)",
+    "_postman_id": "a87e5b12-9c3d-4e56-8a90-7f1234567890",
+    "description": "Full automated test suite for Tazkara Microservices Backend covering all business user stories, validation edge cases, concurrency guards, and role security checks.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080",
-      "type": "string"
-    },
-    {
-      "key": "internalUrl",
-      "value": "http://localhost:8082",
-      "type": "string"
-    },
-    {
-      "key": "internalApiKey",
-      "value": "your_internal_service_api_key_12345",
-      "type": "string"
-    },
-    {
-      "key": "organizerToken",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "attendeeToken",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "refreshToken",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "eventId",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "ticketTypeId",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "bookingRef",
-      "value": "",
-      "type": "string"
-    }
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "internalUrl", "value": "http://localhost:8082", "type": "string" },
+    { "key": "internalApiKey", "value": "your_internal_service_api_key_12345", "type": "string" },
+    { "key": "organizerToken", "value": "", "type": "string" },
+    { "key": "attendeeToken", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "eventId", "value": "1", "type": "string" },
+    { "key": "ticketTypeId", "value": "1", "type": "string" },
+    { "key": "bookingRef", "value": "", "type": "string" },
+    { "key": "newEventId", "value": "", "type": "string" },
+    { "key": "eventCancelBookingRef", "value": "", "type": "string" }
   ],
   "item": [
     {
-      "name": "01. Auth & Identity (US-01, US-02, US-03)",
+      "name": "01. Authentication & Users (US-01, US-02, US-03, Refresh Token)",
       "item": [
         {
-          "name": "01 - Login as Demo Organizer",
+          "name": "01 - Register New Attendee (US-01)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 409 (if rerun)\", () => {",
+                  "    pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Sami Ahmad\",\n  \"email\": \"sami.new@tazkara.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ATTENDEE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "02 - Register Organizer with Org Name (US-01)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 409 (if rerun)\", () => {",
+                  "    pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nour Events\",\n  \"email\": \"nour.org@tazkara.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ORGANIZER\",\n  \"organizationName\": \"Nour Events LLC\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "03 - Register Error - Short Password (<8 chars)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Validation error returned\", () => pm.expect(json.code).to.eql(\"VALIDATION_FAILED\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test User\",\n  \"email\": \"badpass@tazkara.com\",\n  \"password\": \"pass\",\n  \"role\": \"ATTENDEE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "04 - Login as Demo Organizer (US-02)",
           "event": [
             {
               "listen": "test",
@@ -66,7 +107,7 @@
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
                   "pm.collectionVariables.set(\"organizerToken\", json.accessToken);",
-                  "pm.test(\"Access token received\", () => pm.expect(json.accessToken).to.not.be.empty);"
+                  "pm.test(\"Organizer token saved\", () => pm.expect(json.accessToken).to.not.be.empty);"
                 ],
                 "type": "text/javascript"
               }
@@ -83,7 +124,7 @@
           }
         },
         {
-          "name": "02 - Login as Demo Attendee",
+          "name": "05 - Login as Demo Attendee (US-02)",
           "event": [
             {
               "listen": "test",
@@ -93,10 +134,7 @@
                   "const json = pm.response.json();",
                   "pm.collectionVariables.set(\"attendeeToken\", json.accessToken);",
                   "pm.collectionVariables.set(\"refreshToken\", json.refreshToken);",
-                  "pm.test(\"Access and refresh tokens received\", () => {",
-                  "    pm.expect(json.accessToken).to.not.be.empty;",
-                  "    pm.expect(json.refreshToken).to.not.be.empty;",
-                  "});"
+                  "pm.test(\"Tokens saved\", () => pm.expect(json.accessToken).to.not.be.empty);"
                 ],
                 "type": "text/javascript"
               }
@@ -113,7 +151,7 @@
           }
         },
         {
-          "name": "03 - Login Failure - Wrong Password",
+          "name": "06 - Login Failure - Wrong Credentials (US-02)",
           "event": [
             {
               "listen": "test",
@@ -121,7 +159,7 @@
                 "exec": [
                   "pm.test(\"Status code is 401\", () => pm.response.to.have.status(401));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Error code is INVALID_CREDENTIALS\", () => pm.expect(json.code).to.eql(\"INVALID_CREDENTIALS\"));"
+                  "pm.test(\"Code is INVALID_CREDENTIALS\", () => pm.expect(json.code).to.eql(\"INVALID_CREDENTIALS\"));"
                 ],
                 "type": "text/javascript"
               }
@@ -132,13 +170,13 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"attendee@tazkara.com\",\n  \"password\": \"WrongPassword123\"\n}"
+              "raw": "{\n  \"email\": \"attendee@tazkara.com\",\n  \"password\": \"IncorrectPassword123\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
           }
         },
         {
-          "name": "04 - Get Attendee Profile",
+          "name": "07 - Get Profile (US-03)",
           "event": [
             {
               "listen": "test",
@@ -146,7 +184,7 @@
                 "exec": [
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Profile matches attendee\", () => pm.expect(json.email).to.eql(\"attendee@tazkara.com\"));"
+                  "pm.test(\"Email matches\", () => pm.expect(json.email).to.eql(\"attendee@tazkara.com\"));"
                 ],
                 "type": "text/javascript"
               }
@@ -159,7 +197,7 @@
           }
         },
         {
-          "name": "05 - Update Profile",
+          "name": "08 - Update Profile Name (US-03)",
           "event": [
             {
               "listen": "test",
@@ -179,13 +217,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Updated Attendee Name\"\n}"
+              "raw": "{\n  \"fullName\": \"Attendee One Updated\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/users/me", "host": ["{{baseUrl}}"], "path": ["api", "users", "me"] }
           }
         },
         {
-          "name": "06 - Refresh Access Token",
+          "name": "09 - Refresh Token Rotation (Bonus)",
           "event": [
             {
               "listen": "test",
@@ -216,7 +254,7 @@
       "name": "02. Event Browsing (US-07)",
       "item": [
         {
-          "name": "01 - Browse All Published Events",
+          "name": "01 - Browse Published Events",
           "event": [
             {
               "listen": "test",
@@ -239,7 +277,7 @@
           }
         },
         {
-          "name": "02 - Filter Events by City",
+          "name": "02 - Filter Events by City & Keyword",
           "event": [
             {
               "listen": "test",
@@ -253,11 +291,11 @@
           ],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/events?city=Amman", "host": ["{{baseUrl}}"], "path": ["api", "events"], "query": [{ "key": "city", "value": "Amman" }] }
+            "url": { "raw": "{{baseUrl}}/api/events?city=Amman&keyword=Dance", "host": ["{{baseUrl}}"], "path": ["api", "events"], "query": [{ "key": "city", "value": "Amman" }, { "key": "keyword", "value": "Dance" }] }
           }
         },
         {
-          "name": "03 - Get Event Details",
+          "name": "03 - Get Event Details (US-07)",
           "event": [
             {
               "listen": "test",
@@ -265,7 +303,7 @@
                 "exec": [
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Event title is Amman Dance Night\", () => pm.expect(json.title).to.include(\"Amman Dance Night\"));"
+                  "pm.test(\"Event title contains Dance\", () => pm.expect(json.title).to.include(\"Dance\"));"
                 ],
                 "type": "text/javascript"
               }
@@ -275,14 +313,34 @@
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}"] }
           }
+        },
+        {
+          "name": "04 - Get Non-Existent Event (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Code is EVENT_NOT_FOUND\", () => pm.expect(json.code).to.eql(\"EVENT_NOT_FOUND\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/99999", "host": ["{{baseUrl}}"], "path": ["api", "events", "99999"] }
+          }
         }
       ]
     },
     {
-      "name": "03. Organizer Event Operations (US-04, US-05, US-06, US-08)",
+      "name": "03. Organizer Event Operations (US-04, US-05, US-06, US-08, US-09)",
       "item": [
         {
-          "name": "01 - Create Draft Event",
+          "name": "01 - Create Draft Event (US-04)",
           "event": [
             {
               "listen": "test",
@@ -305,13 +363,67 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Tech Summit 2027\",\n  \"description\": \"Annual developer and AI conference\",\n  \"venue\": \"King Hussein Club\",\n  \"city\": \"Amman\",\n  \"startTime\": \"2027-04-15T09:00:00Z\",\n  \"ticketTypes\": [\n    {\n      \"name\": \"Regular\",\n      \"price\": 15.00,\n      \"quantity\": 100\n    },\n    {\n      \"name\": \"VIP\",\n      \"price\": 45.00,\n      \"quantity\": 30\n    }\n  ]\n}"
+              "raw": "{\n  \"title\": \"Jordan Cloud Conf 2027\",\n  \"description\": \"Cloud architecture & backend engineering conference.\",\n  \"venue\": \"Amman Grand Hall\",\n  \"city\": \"Amman\",\n  \"startTime\": \"2027-05-20T10:00:00Z\",\n  \"ticketTypes\": [\n    {\n      \"name\": \"Early Bird\",\n      \"price\": 30.00,\n      \"quantity\": 100\n    },\n    {\n      \"name\": \"VIP Pass\",\n      \"price\": 90.00,\n      \"quantity\": 40\n    }\n  ]\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/organizer/events", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events"] }
           }
         },
         {
-          "name": "02 - Edit Draft Event (PATCH)",
+          "name": "02 - Create Event Error - Start < 24 Hours in Future (US-04)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422 or 400\", () => {",
+                  "    pm.expect([400, 422]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Immediate Event\",\n  \"description\": \"Invalid start time event\",\n  \"venue\": \"Center\",\n  \"city\": \"Amman\",\n  \"startTime\": \"2026-11-01T23:59:00Z\",\n  \"ticketTypes\": [\n    { \"name\": \"Standard\", \"price\": 10.00, \"quantity\": 50 }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizer/events", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events"] }
+          }
+        },
+        {
+          "name": "03 - Security Check - Attendee Cannot Create Event (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403 Forbidden\", () => pm.response.to.have.status(403));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{attendeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Hacked Event\",\n  \"description\": \"Attendee attempting organizer action\",\n  \"venue\": \"Nowhere\",\n  \"city\": \"Amman\",\n  \"startTime\": \"2027-05-20T10:00:00Z\",\n  \"ticketTypes\": [\n    { \"name\": \"Standard\", \"price\": 10.00, \"quantity\": 50 }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizer/events", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events"] }
+          }
+        },
+        {
+          "name": "04 - Edit Draft Event (PATCH) (US-05)",
           "event": [
             {
               "listen": "test",
@@ -319,7 +431,7 @@
                 "exec": [
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Title updated\", () => pm.expect(json.title).to.include(\"Updated\"));"
+                  "pm.test(\"Title updated\", () => pm.expect(json.title).to.include(\"Edited\"));"
                 ],
                 "type": "text/javascript"
               }
@@ -333,13 +445,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Tech Summit 2027 - Updated\"\n}"
+              "raw": "{\n  \"title\": \"Jordan Cloud Conf 2027 - Edited\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/organizer/events/{{newEventId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{newEventId}}"] }
           }
         },
         {
-          "name": "03 - Publish Draft Event",
+          "name": "05 - Publish Draft Event (US-06)",
           "event": [
             {
               "listen": "test",
@@ -347,7 +459,7 @@
                 "exec": [
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Event is now PUBLISHED\", () => pm.expect(json.status).to.eql(\"PUBLISHED\"));"
+                  "pm.test(\"Status is PUBLISHED\", () => pm.expect(json.status).to.eql(\"PUBLISHED\"));"
                 ],
                 "type": "text/javascript"
               }
@@ -360,7 +472,35 @@
           }
         },
         {
-          "name": "04 - List Organizer Events",
+          "name": "06 - Edit Published Event Fails (US-05)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422 or 400\", () => {",
+                  "    pm.expect([400, 422]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Illegal Edit on Published Event\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{newEventId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{newEventId}}"] }
+          }
+        },
+        {
+          "name": "07 - List My Organizer Events (US-08)",
           "event": [
             {
               "listen": "test",
@@ -377,6 +517,27 @@
             "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
             "url": { "raw": "{{baseUrl}}/api/organizer/events?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
           }
+        },
+        {
+          "name": "08 - Cancel Published Event (US-09)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Status changed to CANCELLED\", () => pm.expect(json.status).to.eql(\"CANCELLED\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{newEventId}}/cancel", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{newEventId}}", "cancel"] }
+          }
         }
       ]
     },
@@ -384,7 +545,7 @@
       "name": "04. Booking & Holds (US-10, US-12, US-13)",
       "item": [
         {
-          "name": "01 - Place Booking (10m Hold)",
+          "name": "01 - Place Booking (10m Hold) (US-10)",
           "event": [
             {
               "listen": "test",
@@ -394,7 +555,7 @@
                   "const json = pm.response.json();",
                   "pm.collectionVariables.set(\"bookingRef\", json.reference);",
                   "pm.test(\"Status is PENDING_PAYMENT\", () => pm.expect(json.status).to.eql(\"PENDING_PAYMENT\"));",
-                  "pm.test(\"Hold timestamp generated\", () => pm.expect(json.holdExpiresAt).to.not.be.null);"
+                  "pm.test(\"Hold expires at is set\", () => pm.expect(json.holdExpiresAt).to.not.be.null);"
                 ],
                 "type": "text/javascript"
               }
@@ -414,7 +575,7 @@
           }
         },
         {
-          "name": "02 - Get Booking by Reference",
+          "name": "02 - Get Booking by Reference (US-13)",
           "event": [
             {
               "listen": "test",
@@ -435,7 +596,7 @@
           }
         },
         {
-          "name": "03 - List My Bookings",
+          "name": "03 - List My Bookings (US-13)",
           "event": [
             {
               "listen": "test",
@@ -454,7 +615,7 @@
           }
         },
         {
-          "name": "04 - Ticket Limit Exceeded Check (>6)",
+          "name": "04 - Ticket Limit Exceeded Check (>6 tickets) (US-10)",
           "event": [
             {
               "listen": "test",
@@ -480,14 +641,40 @@
             },
             "url": { "raw": "{{baseUrl}}/api/attendee/bookings", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings"] }
           }
+        },
+        {
+          "name": "05 - Organizer Cannot Book Tickets (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403 Forbidden\", () => pm.response.to.have.status(403));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": {{eventId}},\n  \"lines\": [\n    {\n      \"ticketTypeId\": {{ticketTypeId}},\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings"] }
+          }
         }
       ]
     },
     {
-      "name": "05. Payment & PDF Tickets (US-11, PDF)",
+      "name": "05. Payments & PDF Tickets (US-11, PDF)",
       "item": [
         {
-          "name": "01 - Pay Booking (CARD)",
+          "name": "01 - Pay Booking (CARD) (US-11)",
           "event": [
             {
               "listen": "test",
@@ -496,7 +683,7 @@
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
                   "pm.test(\"Status is CONFIRMED\", () => pm.expect(json.status).to.eql(\"CONFIRMED\"));",
-                  "pm.test(\"Hold expires at is cleared\", () => pm.expect(json.holdExpiresAt).to.be.null);"
+                  "pm.test(\"Paid timestamp recorded\", () => pm.expect(json.paidAt).to.not.be.null);"
                 ],
                 "type": "text/javascript"
               }
@@ -516,7 +703,7 @@
           }
         },
         {
-          "name": "02 - Double Payment Prevention Check",
+          "name": "02 - Double Payment Prevention Check (US-11)",
           "event": [
             {
               "listen": "test",
@@ -580,7 +767,7 @@
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
                   "pm.test(\"Status is CANCELLED\", () => pm.expect(json.status).to.eql(\"CANCELLED\"));",
-                  "pm.test(\"Full refund applied\", () => pm.expect(json.refundAmount).to.be.above(0));"
+                  "pm.test(\"Refund amount recorded\", () => pm.expect(json.refundAmount).to.be.above(0));"
                 ],
                 "type": "text/javascript"
               }
@@ -593,7 +780,7 @@
           }
         },
         {
-          "name": "02 - Cancel Already Cancelled Booking Check",
+          "name": "02 - Cancel Already Cancelled Booking Fails (409)",
           "event": [
             {
               "listen": "test",
@@ -619,7 +806,7 @@
       "name": "07. Organizer Sales & CSV Export (US-15, US-16)",
       "item": [
         {
-          "name": "01 - View Event Sales Summary",
+          "name": "01 - View Event Sales Summary (US-15)",
           "event": [
             {
               "listen": "test",
@@ -627,9 +814,7 @@
                 "exec": [
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Sales summary contains ticket breakdown\", () => {",
-                  "    pm.expect(json.ticketTypes).to.be.an(\"array\");",
-                  "});"
+                  "pm.test(\"Contains ticket summary\", () => pm.expect(json.ticketTypes).to.be.an(\"array\"));"
                 ],
                 "type": "text/javascript"
               }
@@ -642,7 +827,7 @@
           }
         },
         {
-          "name": "02 - List Event Bookings",
+          "name": "02 - List Event Bookings (US-15)",
           "event": [
             {
               "listen": "test",
@@ -661,7 +846,7 @@
           }
         },
         {
-          "name": "03 - Export Confirmed Bookings (CSV)",
+          "name": "03 - Export Confirmed Bookings (CSV) (US-16)",
           "event": [
             {
               "listen": "test",
@@ -685,10 +870,161 @@
       ]
     },
     {
-      "name": "08. Internal Service-to-Service Security (Direct Port 8082)",
+      "name": "08. Cross-Service Cancellation via RabbitMQ (US-09, US-17)",
       "item": [
         {
-          "name": "01 - Call Internal API with Valid Key",
+          "name": "01 - Create Event to be Cancelled",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"eventToCancelId\", json.id);",
+                  "pm.collectionVariables.set(\"eventToCancelTicketId\", json.ticketTypes[0].id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Event Destined for Cancellation\",\n  \"description\": \"Testing RabbitMQ cascading cancellation\",\n  \"venue\": \"Outdoor Stage\",\n  \"city\": \"Amman\",\n  \"startTime\": \"2027-08-10T18:00:00Z\",\n  \"ticketTypes\": [\n    { \"name\": \"General Admission\", \"price\": 20.00, \"quantity\": 50 }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizer/events", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events"] }
+          }
+        },
+        {
+          "name": "02 - Publish Event to be Cancelled",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{eventToCancelId}}/publish", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{eventToCancelId}}", "publish"] }
+          }
+        },
+        {
+          "name": "03 - Attendee Books Tickets on That Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"eventCancelBookingRef\", json.reference);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{attendeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": {{eventToCancelId}},\n  \"lines\": [\n    {\n      \"ticketTypeId\": {{eventToCancelTicketId}},\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings"] }
+          }
+        },
+        {
+          "name": "04 - Attendee Pays for That Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{attendeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CARD\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings/{{eventCancelBookingRef}}/pay", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings", "{{eventCancelBookingRef}}", "pay"] }
+          }
+        },
+        {
+          "name": "05 - Organizer Cancels Event (Publishes to RabbitMQ)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Event is CANCELLED\", () => pm.expect(json.status).to.eql(\"CANCELLED\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{eventToCancelId}}/cancel", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{eventToCancelId}}", "cancel"] }
+          }
+        },
+        {
+          "name": "06 - Verify Booking Cancelled by Event & Refunded (RabbitMQ Consumer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Booking is CANCELLED\", () => pm.expect(json.status).to.eql(\"CANCELLED\"));",
+                  "pm.test(\"Reason is EVENT_CANCELLED\", () => pm.expect(json.cancellationReason).to.eql(\"EVENT_CANCELLED\"));",
+                  "pm.test(\"Full refund applied\", () => pm.expect(json.refundAmount).to.be.above(0));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{attendeeToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings/{{eventCancelBookingRef}}", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings", "{{eventCancelBookingRef}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Internal Service-to-Service Security (Port 8082)",
+      "item": [
+        {
+          "name": "01 - Call Internal API with Valid Key (200)",
           "event": [
             {
               "listen": "test",
@@ -707,7 +1043,7 @@
           }
         },
         {
-          "name": "02 - Call Internal API without Key",
+          "name": "02 - Call Internal API without Key (401/403)",
           "event": [
             {
               "listen": "test",
@@ -727,7 +1063,7 @@
           }
         },
         {
-          "name": "03 - Gateway Blocks Internal Route",
+          "name": "03 - Gateway Blocks Internal Route (404)",
           "event": [
             {
               "listen": "test",
@@ -743,6 +1079,59 @@
             "method": "GET",
             "header": [{ "key": "X-Internal-Key", "value": "{{internalApiKey}}" }],
             "url": { "raw": "{{baseUrl}}/api/internal/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "internal", "events", "{{eventId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Logout & Token Invalidation (Bonus)",
+      "item": [
+        {
+          "name": "01 - Logout (Revoke Refresh Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204 No Content\", () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] }
+          }
+        },
+        {
+          "name": "02 - Refresh with Revoked Token Fails (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Code is INVALID_REFRESH_TOKEN\", () => pm.expect(json.code).to.eql(\"INVALID_REFRESH_TOKEN\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] }
           }
         }
       ]

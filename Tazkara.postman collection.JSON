@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Tazkara",
-    "description": "End to end flow for the Tazkara platform. Start the container with `docker compose up --build`, then run the folders in order with the Collection Runner. Every request goes through the gateway on port 8080 unless noted. Requests marked [verify path] use assumed Event endpoint paths.",
+    "description": "",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -432,7 +432,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"organizer@tazkara.com\",\n  \"password\": \"Organizer123\"\n}",
+              "raw": "{\n  \"email\": \"organizer@tazkara.com\",\n  \"password\": \"Password123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -476,7 +476,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"attendee@tazkara.com\",\n  \"password\": \"Attendee123\"\n}",
+              "raw": "{\n  \"email\": \"attendee@tazkara.com\",\n  \"password\": \"Password123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -586,7 +586,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Sara Ahmad\",\n  \"email\": \"hacker@x.com\",\n  \"role\": \"ORGANIZER\",\n  \"organizationName\": \"Anything\"\n}",
+              "raw": "{\n  \"fullName\": \"Attendee1\",\n  \"email\": \"hacker@x.com\",\n  \"role\": \"ORGANIZER\",\n  \"organizationName\": \"Anything\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

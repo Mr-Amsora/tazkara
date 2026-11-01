@@ -1,0 +1,751 @@
+{
+  "info": {
+    "name": "Tazkara Event Ticketing Platform",
+    "_postman_id": "c1f7b8a2-9d3e-4b21-8f55-7d8a6e42b109",
+    "description": "Complete test collection for Tazkara Microservices Backend covering all business user stories (US-01 through US-17).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "internalUrl",
+      "value": "http://localhost:8082",
+      "type": "string"
+    },
+    {
+      "key": "internalApiKey",
+      "value": "your_internal_service_api_key_12345",
+      "type": "string"
+    },
+    {
+      "key": "organizerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attendeeToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "eventId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "ticketTypeId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "bookingRef",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Auth & Identity (US-01, US-02, US-03)",
+      "item": [
+        {
+          "name": "01 - Login as Demo Organizer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"organizerToken\", json.accessToken);",
+                  "pm.test(\"Access token received\", () => pm.expect(json.accessToken).to.not.be.empty);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"organizer@tazkara.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "02 - Login as Demo Attendee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"attendeeToken\", json.accessToken);",
+                  "pm.collectionVariables.set(\"refreshToken\", json.refreshToken);",
+                  "pm.test(\"Access and refresh tokens received\", () => {",
+                  "    pm.expect(json.accessToken).to.not.be.empty;",
+                  "    pm.expect(json.refreshToken).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"attendee@tazkara.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "03 - Login Failure - Wrong Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code is INVALID_CREDENTIALS\", () => pm.expect(json.code).to.eql(\"INVALID_CREDENTIALS\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"attendee@tazkara.com\",\n  \"password\": \"WrongPassword123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "04 - Get Attendee Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Profile matches attendee\", () => pm.expect(json.email).to.eql(\"attendee@tazkara.com\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{attendeeToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users/me", "host": ["{{baseUrl}}"], "path": ["api", "users", "me"] }
+          }
+        },
+        {
+          "name": "05 - Update Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{attendeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Attendee Name\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/users/me", "host": ["{{baseUrl}}"], "path": ["api", "users", "me"] }
+          }
+        },
+        {
+          "name": "06 - Refresh Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"attendeeToken\", json.accessToken);",
+                  "pm.collectionVariables.set(\"refreshToken\", json.refreshToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Event Browsing (US-07)",
+      "item": [
+        {
+          "name": "01 - Browse All Published Events",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json.content && json.content.length > 0) {",
+                  "    pm.collectionVariables.set(\"eventId\", json.content[0].id);",
+                  "    pm.collectionVariables.set(\"ticketTypeId\", json.content[0].ticketTypes[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "events"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
+          }
+        },
+        {
+          "name": "02 - Filter Events by City",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events?city=Amman", "host": ["{{baseUrl}}"], "path": ["api", "events"], "query": [{ "key": "city", "value": "Amman" }] }
+          }
+        },
+        {
+          "name": "03 - Get Event Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Event title is Amman Dance Night\", () => pm.expect(json.title).to.include(\"Amman Dance Night\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Organizer Event Operations (US-04, US-05, US-06, US-08)",
+      "item": [
+        {
+          "name": "01 - Create Draft Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"newEventId\", json.id);",
+                  "pm.test(\"Status is DRAFT\", () => pm.expect(json.status).to.eql(\"DRAFT\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tech Summit 2027\",\n  \"description\": \"Annual developer and AI conference\",\n  \"venue\": \"King Hussein Club\",\n  \"city\": \"Amman\",\n  \"startTime\": \"2027-04-15T09:00:00Z\",\n  \"ticketTypes\": [\n    {\n      \"name\": \"Regular\",\n      \"price\": 15.00,\n      \"quantity\": 100\n    },\n    {\n      \"name\": \"VIP\",\n      \"price\": 45.00,\n      \"quantity\": 30\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizer/events", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events"] }
+          }
+        },
+        {
+          "name": "02 - Edit Draft Event (PATCH)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Title updated\", () => pm.expect(json.title).to.include(\"Updated\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tech Summit 2027 - Updated\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{newEventId}}", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{newEventId}}"] }
+          }
+        },
+        {
+          "name": "03 - Publish Draft Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Event is now PUBLISHED\", () => pm.expect(json.status).to.eql(\"PUBLISHED\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{newEventId}}/publish", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{newEventId}}", "publish"] }
+          }
+        },
+        {
+          "name": "04 - List Organizer Events",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizer/events?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Booking & Holds (US-10, US-12, US-13)",
+      "item": [
+        {
+          "name": "01 - Place Booking (10m Hold)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"bookingRef\", json.reference);",
+                  "pm.test(\"Status is PENDING_PAYMENT\", () => pm.expect(json.status).to.eql(\"PENDING_PAYMENT\"));",
+                  "pm.test(\"Hold timestamp generated\", () => pm.expect(json.holdExpiresAt).to.not.be.null);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{attendeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": {{eventId}},\n  \"lines\": [\n    {\n      \"ticketTypeId\": {{ticketTypeId}},\n      \"quantity\": 2\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings"] }
+          }
+        },
+        {
+          "name": "02 - Get Booking by Reference",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Reference matches\", () => pm.expect(json.reference).to.eql(pm.collectionVariables.get(\"bookingRef\")));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{attendeeToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings/{{bookingRef}}", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings", "{{bookingRef}}"] }
+          }
+        },
+        {
+          "name": "03 - List My Bookings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{attendeeToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings"] }
+          }
+        },
+        {
+          "name": "04 - Ticket Limit Exceeded Check (>6)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422\", () => pm.response.to.have.status(422));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error is TICKET_LIMIT_EXCEEDED\", () => pm.expect(json.code).to.eql(\"TICKET_LIMIT_EXCEEDED\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{attendeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": {{eventId}},\n  \"lines\": [\n    {\n      \"ticketTypeId\": {{ticketTypeId}},\n      \"quantity\": 10\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Payment & PDF Tickets (US-11, PDF)",
+      "item": [
+        {
+          "name": "01 - Pay Booking (CARD)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Status is CONFIRMED\", () => pm.expect(json.status).to.eql(\"CONFIRMED\"));",
+                  "pm.test(\"Hold expires at is cleared\", () => pm.expect(json.holdExpiresAt).to.be.null);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{attendeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CARD\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings/{{bookingRef}}/pay", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings", "{{bookingRef}}", "pay"] }
+          }
+        },
+        {
+          "name": "02 - Double Payment Prevention Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error is BOOKING_NOT_PAYABLE\", () => pm.expect(json.code).to.eql(\"BOOKING_NOT_PAYABLE\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{attendeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CARD\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings/{{bookingRef}}/pay", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings", "{{bookingRef}}", "pay"] }
+          }
+        },
+        {
+          "name": "03 - Download Tickets PDF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Content-Type is application/pdf\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/pdf\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{attendeeToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings/{{bookingRef}}/tickets", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings", "{{bookingRef}}", "tickets"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Cancellation & Refunds (US-14)",
+      "item": [
+        {
+          "name": "01 - Cancel Confirmed Booking (Full Refund)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Status is CANCELLED\", () => pm.expect(json.status).to.eql(\"CANCELLED\"));",
+                  "pm.test(\"Full refund applied\", () => pm.expect(json.refundAmount).to.be.above(0));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{attendeeToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings/{{bookingRef}}/cancel", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings", "{{bookingRef}}", "cancel"] }
+          }
+        },
+        {
+          "name": "02 - Cancel Already Cancelled Booking Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error is BOOKING_NOT_CANCELLABLE\", () => pm.expect(json.code).to.eql(\"BOOKING_NOT_CANCELLABLE\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{attendeeToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/attendee/bookings/{{bookingRef}}/cancel", "host": ["{{baseUrl}}"], "path": ["api", "attendee", "bookings", "{{bookingRef}}", "cancel"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Organizer Sales & CSV Export (US-15, US-16)",
+      "item": [
+        {
+          "name": "01 - View Event Sales Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Sales summary contains ticket breakdown\", () => {",
+                  "    pm.expect(json.ticketTypes).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{eventId}}/sales", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{eventId}}", "sales"] }
+          }
+        },
+        {
+          "name": "02 - List Event Bookings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{eventId}}/bookings?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{eventId}}", "bookings"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
+          }
+        },
+        {
+          "name": "03 - Export Confirmed Bookings (CSV)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Content-Type contains text/csv\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/csv\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{organizerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/organizer/events/{{eventId}}/bookings/export", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "events", "{{eventId}}", "bookings", "export"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Internal Service-to-Service Security (Direct Port 8082)",
+      "item": [
+        {
+          "name": "01 - Call Internal API with Valid Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Internal-Key", "value": "{{internalApiKey}}" }],
+            "url": { "raw": "{{internalUrl}}/api/internal/events/{{eventId}}", "host": ["{{internalUrl}}"], "path": ["api", "internal", "events", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "02 - Call Internal API without Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401 or 403\", () => {",
+                  "    pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{internalUrl}}/api/internal/events/{{eventId}}", "host": ["{{internalUrl}}"], "path": ["api", "internal", "events", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "03 - Gateway Blocks Internal Route",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404 (Gateway has no route)\", () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Internal-Key", "value": "{{internalApiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/api/internal/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "internal", "events", "{{eventId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

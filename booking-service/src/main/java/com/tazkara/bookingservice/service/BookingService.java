@@ -1,7 +1,6 @@
 package com.tazkara.bookingservice.service;
 
 import com.tazkara.bookingservice.client.EventClient;
-import com.tazkara.bookingservice.dto.BookingProperties;
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingLine;
 import com.tazkara.bookingservice.domain.BookingReference;
@@ -22,6 +21,7 @@ import com.tazkara.bookingservice.mapper.BookingMapper;
 import com.tazkara.bookingservice.repository.BookingRepository;
 import com.tazkara.bookingservice.dto.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,9 +43,12 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final EventClient eventClient;
-    private final BookingProperties properties;
     private final RefundPolicyFactory refundPolicyFactory;
     private final ApplicationEventPublisher eventPublisher;
+    @Value("${app.booking.hold-minutes}")
+    private int holdMinutes;
+    @Value("${app.booking.max-tickets-per-event}")
+    private int maxTicketsPerEvent;
 
     public BookingResponse placeBooking(AuthenticatedUser user, PlaceBookingRequest request) {
         Instant now = Instant.now();
@@ -76,7 +79,7 @@ public class BookingService {
                 .eventStartTime(event.startTime())
                 .reference(BookingReference.generate())
                 .lines(lines)
-                .holdExpiresAt(now.plus(properties.holdMinutes(), ChronoUnit.MINUTES))
+                .holdExpiresAt(now.plus(holdMinutes, ChronoUnit.MINUTES))
                 .now(now)
                 .build();
 
@@ -180,9 +183,9 @@ public class BookingService {
         int requested = request.lines().stream().mapToInt(BookingLineRequest::quantity).sum();
         long active = bookingRepository.countActiveTickets(attendeeId, eventId, BookingStatus.ACTIVE);
 
-        if (active + requested > properties.maxTicketsPerEvent()) {
+        if (active + requested > maxTicketsPerEvent) {
             throw new BookingException(HttpStatus.UNPROCESSABLE_ENTITY, "TICKET_LIMIT_EXCEEDED",
-                    "You can hold at most " + properties.maxTicketsPerEvent() + " tickets per event");
+                    "You can hold at most " + maxTicketsPerEvent + " tickets per event");
         }
     }
 }

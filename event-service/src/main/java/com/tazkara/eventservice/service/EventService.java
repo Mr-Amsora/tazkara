@@ -131,6 +131,7 @@ public class EventService {
         ).map(EventMapper::toResponse);
     }
 
+    @Transactional(readOnly = true)
     public EventResponse getPublicEventDetails(Long eventId) {
         Event event = findEvent(eventId);
 

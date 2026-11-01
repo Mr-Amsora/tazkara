@@ -21,7 +21,9 @@ RUN apt-get update \
         rabbitmq-server \
         supervisor \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --system --no-create-home tazkara
+    && useradd --system --no-create-home tazkara \
+    && rabbitmq-plugins enable --offline rabbitmq_management \
+    && echo "loopback_users.guest = false" > /etc/rabbitmq/rabbitmq.conf
 
 WORKDIR /app
 

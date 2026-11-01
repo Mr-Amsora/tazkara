@@ -1,12 +1,12 @@
 package com.tazkara.bookingservice.service;
 
 import com.tazkara.bookingservice.client.EventClient;
-import com.tazkara.bookingservice.config.BookingProperties;
+import com.tazkara.bookingservice.dto.BookingProperties;
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingLine;
 import com.tazkara.bookingservice.domain.BookingReference;
 import com.tazkara.bookingservice.domain.BookingStatus;
-import com.tazkara.bookingservice.domain.events.BookingStatusChangedEvent;
+import com.tazkara.bookingservice.dto.BookingStatusChangedEvent;
 import com.tazkara.bookingservice.domain.refund.RefundPolicy;
 import com.tazkara.bookingservice.domain.refund.RefundPolicyFactory;
 import com.tazkara.bookingservice.dto.BookingLineRequest;
@@ -20,7 +20,7 @@ import com.tazkara.bookingservice.exception.BookingException;
 import com.tazkara.bookingservice.export.TicketPdfGenerator;
 import com.tazkara.bookingservice.mapper.BookingMapper;
 import com.tazkara.bookingservice.repository.BookingRepository;
-import com.tazkara.bookingservice.security.AuthenticatedUser;
+import com.tazkara.bookingservice.dto.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;

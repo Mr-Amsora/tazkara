@@ -7,7 +7,7 @@ import com.tazkara.bookingservice.dto.FileDownload;
 import com.tazkara.bookingservice.dto.PageResponse;
 import com.tazkara.bookingservice.dto.PayBookingRequest;
 import com.tazkara.bookingservice.dto.PlaceBookingRequest;
-import com.tazkara.bookingservice.security.AuthenticatedUser;
+import com.tazkara.bookingservice.dto.AuthenticatedUser;
 import com.tazkara.bookingservice.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

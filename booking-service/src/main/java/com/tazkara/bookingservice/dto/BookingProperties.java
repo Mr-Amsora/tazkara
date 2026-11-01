@@ -1,4 +1,4 @@
-package com.tazkara.bookingservice.config;
+package com.tazkara.bookingservice.dto;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

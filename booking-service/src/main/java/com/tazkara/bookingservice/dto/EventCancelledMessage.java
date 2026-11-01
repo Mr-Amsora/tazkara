@@ -1,3 +1,3 @@
-package com.tazkara.bookingservice.messaging;
+package com.tazkara.bookingservice.dto;
 
 public record EventCancelledMessage(Long eventId) {}

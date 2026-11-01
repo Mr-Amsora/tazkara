@@ -2,7 +2,7 @@ package com.tazkara.bookingservice.service;
 
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingStatus;
-import com.tazkara.bookingservice.domain.events.BookingStatusChangedEvent;
+import com.tazkara.bookingservice.dto.BookingStatusChangedEvent;
 import com.tazkara.bookingservice.domain.refund.RefundPolicy;
 import com.tazkara.bookingservice.domain.refund.RefundPolicyFactory;
 import com.tazkara.bookingservice.repository.BookingRepository;

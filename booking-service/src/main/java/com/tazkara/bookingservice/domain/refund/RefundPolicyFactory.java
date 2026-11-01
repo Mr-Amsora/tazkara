@@ -7,24 +7,20 @@ import java.time.Duration;
 @Component
 public class RefundPolicyFactory {
 
-    private static final Duration FULL_REFUND_NOTICE = Duration.ofDays(7);
-    private static final Duration HALF_REFUND_NOTICE = Duration.ofHours(48);
-
-    private final RefundPolicy fullRefund = new FullRefundPolicy();
-    private final RefundPolicy halfRefund = new HalfRefundPolicy();
-    private final RefundPolicy noRefund = new NoRefundPolicy();
+    private static final Duration FULL_REFUND_DURATION = Duration.ofDays(7);
+    private static final Duration HALF_REFUND_DURATION = Duration.ofHours(48);
 
     public RefundPolicy forTimeLeft(Duration timeLeft) {
-        if (timeLeft.compareTo(FULL_REFUND_NOTICE) >= 0) {
-            return fullRefund;
+        if (timeLeft.compareTo(FULL_REFUND_DURATION) >= 0) {
+            return new FullRefundPolicy();
         }
-        if (timeLeft.compareTo(HALF_REFUND_NOTICE) >= 0) {
-            return halfRefund;
+        if (timeLeft.compareTo(HALF_REFUND_DURATION) >= 0) {
+            return new HalfRefundPolicy();
         }
-        return noRefund;
+        return new NoRefundPolicy();
     }
 
     public RefundPolicy forEventCancellation() {
-        return fullRefund;
+        return new FullRefundPolicy();
     }
 }

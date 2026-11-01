@@ -1,3 +1,3 @@
-package com.tazkara.bookingservice.security;
+package com.tazkara.bookingservice.dto;
 
 public record AuthenticatedUser(Long id, String email) {}

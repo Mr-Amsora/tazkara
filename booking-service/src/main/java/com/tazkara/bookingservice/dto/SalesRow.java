@@ -1,4 +1,4 @@
-package com.tazkara.bookingservice.repository;
+package com.tazkara.bookingservice.dto;
 
 import com.tazkara.bookingservice.domain.BookingStatus;
 

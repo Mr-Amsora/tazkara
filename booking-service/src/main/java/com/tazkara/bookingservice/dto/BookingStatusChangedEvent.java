@@ -1,4 +1,4 @@
-package com.tazkara.bookingservice.domain.events;
+package com.tazkara.bookingservice.dto;
 
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingStatus;

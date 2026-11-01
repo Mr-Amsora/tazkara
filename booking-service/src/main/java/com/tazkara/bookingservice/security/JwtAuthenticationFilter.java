@@ -1,5 +1,6 @@
 package com.tazkara.bookingservice.security;
 
+import com.tazkara.bookingservice.dto.AuthenticatedUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

@@ -3,7 +3,6 @@ package com.tazkara.bookingservice.export;
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingLine;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -16,29 +15,25 @@ import java.util.stream.Stream;
 
 public final class BookingCsvExporter {
 
-    private static final String HEADER =
-            "reference,attendee_email,ticket_type,quantity,unit_price,line_total,confirmed_at";
+    private static final String HEADER = "reference,attendee_email,ticket_type,quantity,unit_price,line_total,confirmed_at";
     private static final String LINE_END = "\r\n";
-    private static final char BYTE_ORDER_MARK = '\uFEFF';
 
     private BookingCsvExporter() {}
 
     public static byte[] export(List<Booking> confirmedBookings) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(bytes, StandardCharsets.UTF_8))) {
-            writer.write(BYTE_ORDER_MARK);
-            writer.write(HEADER);
-            writer.write(LINE_END);
+        try (Writer writer = new OutputStreamWriter(bytes, StandardCharsets.UTF_8)) {
+            writer.write('\uFEFF');
+            writer.write(HEADER + LINE_END);
 
             for (Booking booking : confirmedBookings) {
                 for (BookingLine line : booking.getLines()) {
-                    writer.write(row(booking, line));
-                    writer.write(LINE_END);
+                    writer.write(row(booking, line) + LINE_END);
                 }
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException("Failed to export CSV", e);
         }
 
         return bytes.toByteArray();
@@ -49,26 +44,25 @@ public final class BookingCsvExporter {
                         booking.getReference(),
                         booking.getAttendeeEmail(),
                         line.getTicketTypeName(),
-                        String.valueOf(line.getQuantity()),
-                        line.getUnitPrice().toPlainString(),
-                        line.lineTotal().toPlainString(),
-                        booking.getPaidAt().toString())
-                .map(BookingCsvExporter::escape)
+                        line.getQuantity(),
+                        line.getUnitPrice() != null ? line.getUnitPrice().toPlainString() : null,
+                        line.lineTotal() != null ? line.lineTotal().toPlainString() : null,
+                        booking.getPaidAt())
+                .map(BookingCsvExporter::formatField)
                 .collect(Collectors.joining(","));
     }
 
-    static String escape(String value) {
-        String safe = startsLikeFormula(value) ? "'" + value : value;
-
-        boolean needsQuotes = safe.contains(",") || safe.contains("\"")
-                || safe.contains("\n") || safe.contains("\r");
-        if (!needsQuotes) {
-            return safe;
+    private static String formatField(Object field) {
+        if (field == null) {
+            return "";
         }
-        return "\"" + safe.replace("\"", "\"\"") + "\"";
-    }
 
-    private static boolean startsLikeFormula(String value) {
-        return !value.isEmpty() && "=+-@".indexOf(value.charAt(0)) >= 0;
+        String value = field.toString();
+
+        if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+
+        return value;
     }
 }

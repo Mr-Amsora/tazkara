@@ -1,6 +1,7 @@
 package com.tazkara.bookingservice.messaging;
 
 import com.tazkara.bookingservice.config.RabbitConfig;
+import com.tazkara.bookingservice.dto.EventCancelledMessage;
 import com.tazkara.bookingservice.service.EventCancellationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -2,6 +2,7 @@ package com.tazkara.bookingservice.repository;
 
 import com.tazkara.bookingservice.domain.Booking;
 import com.tazkara.bookingservice.domain.BookingStatus;
+import com.tazkara.bookingservice.dto.SalesRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,7 +46,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByStatusInAndTicketsReleasedFalse(Collection<BookingStatus> statuses, Pageable pageable);
 
     @Query("""
-            SELECT new com.tazkara.bookingservice.repository.SalesRow(
+            SELECT new com.tazkara.bookingservice.dto.SalesRow(
                    l.ticketTypeId, b.status, SUM(l.quantity), SUM(l.unitPrice * l.quantity))
             FROM Booking b JOIN b.lines l
             WHERE b.eventId = :eventId AND b.status IN :statuses

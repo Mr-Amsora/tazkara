@@ -3,10 +3,7 @@ package com.tazkara.bookingservice.domain;
 import com.tazkara.bookingservice.domain.refund.RefundPolicy;
 import com.tazkara.bookingservice.exception.BookingException;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
@@ -17,7 +14,8 @@ import java.util.List;
 @Entity
 @Table(name = "bookings")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 public class Booking {
 
     @Id
@@ -104,7 +102,7 @@ public class Booking {
                 .map(BookingLine::lineTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (totalAmount.signum() == 0) {
+        if (totalAmount.compareTo(BigDecimal.ZERO) == 0) {
             this.status = BookingStatus.CONFIRMED;
             this.paidAt = now;
         } else {

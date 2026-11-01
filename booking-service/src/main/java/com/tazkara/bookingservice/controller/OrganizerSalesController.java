@@ -5,7 +5,7 @@ import com.tazkara.bookingservice.dto.FileDownload;
 import com.tazkara.bookingservice.dto.OrganizerBookingResponse;
 import com.tazkara.bookingservice.dto.PageResponse;
 import com.tazkara.bookingservice.dto.SalesSummaryResponse;
-import com.tazkara.bookingservice.security.AuthenticatedUser;
+import com.tazkara.bookingservice.dto.AuthenticatedUser;
 import com.tazkara.bookingservice.service.SalesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
